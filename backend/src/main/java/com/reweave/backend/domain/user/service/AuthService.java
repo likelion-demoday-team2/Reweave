@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
+
 @Service
 @Transactional(readOnly = true)
 public class AuthService {
@@ -37,7 +39,7 @@ public class AuthService {
     // 회원가입
     @Transactional
     public SignupResponse signup(SignupRequest request) {
-        String email = request.email().trim();
+        String email = normalizeEmail(request.email());
         if (userRepository.existsByEmail(email)) {
             throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
@@ -48,7 +50,7 @@ public class AuthService {
     // 로그인: 같은 clientType이면 기존 Refresh Token 교체
     @Transactional
     public TokenResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.email().trim())
+        User user = userRepository.findByEmail(normalizeEmail(request.email()))
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
@@ -99,5 +101,9 @@ public class AuthService {
                 );
 
         return new TokenResponse(accessToken, refreshToken, jwtProvider.getAccessExpSeconds());
+    }
+
+    private String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 }

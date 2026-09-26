@@ -104,6 +104,15 @@ class AuthApiTest {
                 .andExpect(jsonPath("$.code").value("INVALID_PASSWORD"));
     }
 
+    @Test
+    @DisplayName("대문자로 가입해도 소문자로 로그인 가능")
+    void login_emailCaseInsensitive() throws Exception {
+        signup("Test@Naver.com", PASSWORD);
+
+        login("test@naver.com", PASSWORD, "WEB")
+                .andExpect(status().isOk());
+    }
+
     // ===== 내 정보 =====
 
     @Test
