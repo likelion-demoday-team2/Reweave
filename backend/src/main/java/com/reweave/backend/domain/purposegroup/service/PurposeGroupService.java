@@ -58,6 +58,7 @@ public class PurposeGroupService {
                 .orElseThrow(() -> new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND));
 
         purposeGroup.update(request.purposeName().trim());
+        purposeGroupRepository.flush();
         return PurposeGroupResponse.from(purposeGroup);
     }
 
@@ -68,6 +69,7 @@ public class PurposeGroupService {
                 .orElseThrow(() -> new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND));
 
         purposeGroup.updateStatus(request.status());
+        purposeGroupRepository.flush();
         return PurposeGroupResponse.from(purposeGroup);
     }
 
