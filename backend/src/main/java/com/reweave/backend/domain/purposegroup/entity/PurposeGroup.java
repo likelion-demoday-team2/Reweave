@@ -1,12 +1,11 @@
 package com.reweave.backend.domain.purposegroup.entity;
 
+import com.reweave.backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "purposegroups")
-public class PurposeGroup {
+public class PurposeGroup extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,27 +15,23 @@ public class PurposeGroup {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
+    @Column(name = "category_id")
+    private Long categoryId;
+
     @Column(name = "purpose_name", nullable = false, length = 255)
     private String purposeName;
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
-    @Column(name = "created_date", nullable = false)
-    private LocalDateTime createdDate;
-
-    @Column(name = "modified_date", nullable = false)
-    private LocalDateTime modifiedDate;
-
     protected PurposeGroup() {
     }
 
-    public PurposeGroup(Long userId, String purposeName, String status) {
+    public PurposeGroup(Long userId, String purposeName, String status, Long categoryId) {
         this.userId = userId;
         this.purposeName = purposeName;
         this.status = status;
-        this.createdDate = LocalDateTime.now();
-        this.modifiedDate = LocalDateTime.now();
+        this.categoryId = categoryId;
     }
 
     public Long getId() {
@@ -47,6 +42,10 @@ public class PurposeGroup {
         return userId;
     }
 
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
     public String getPurposeName() {
         return purposeName;
     }
@@ -55,21 +54,11 @@ public class PurposeGroup {
         return status;
     }
 
-    public LocalDateTime getCreatedDate() {
-        return createdDate;
-    }
-
-    public LocalDateTime getModifiedDate() {
-        return modifiedDate;
-    }
-
     public void update(String purposeName) {
         this.purposeName = purposeName;
-        this.modifiedDate = LocalDateTime.now();
     }
 
     public void updateStatus(String status) {
         this.status = status;
-        this.modifiedDate = LocalDateTime.now();
     }
 }

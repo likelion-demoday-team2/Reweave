@@ -25,7 +25,10 @@ public enum ErrorCode {
     INVALID_URL(HttpStatus.BAD_REQUEST, "URL 형식이 올바르지 않습니다."),
     BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "북마크를 찾을 수 없습니다."),
     DUPLICATE_BOOKMARK(HttpStatus.CONFLICT, "이미 저장된 링크입니다."),
-    NOT_IN_TRASH(HttpStatus.BAD_REQUEST, "삭제되지 않은 북마크입니다.");
+    NOT_IN_TRASH(HttpStatus.BAD_REQUEST, "삭제되지 않은 북마크입니다."),
+
+    // 목적 그룹
+    PURPOSE_GROUP_NOT_FOUND(HttpStatus.NOT_FOUND, "목적 그룹을 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;
