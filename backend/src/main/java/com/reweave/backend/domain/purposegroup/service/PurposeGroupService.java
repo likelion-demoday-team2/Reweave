@@ -6,6 +6,8 @@ import com.reweave.backend.domain.purposegroup.dto.PurposeGroupStatusRequest;
 import com.reweave.backend.domain.purposegroup.dto.PurposeGroupUpdateRequest;
 import com.reweave.backend.domain.purposegroup.entity.PurposeGroup;
 import com.reweave.backend.domain.purposegroup.repository.PurposeGroupRepository;
+import com.reweave.backend.global.exception.CustomException;
+import com.reweave.backend.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,23 +25,18 @@ public class PurposeGroupService {
 
     // 목적 그룹 생성
     @Transactional
-    public PurposeGroupResponse create(PurposeGroupCreateRequest request) {
-
+    public PurposeGroupResponse create(Long userId, PurposeGroupCreateRequest request) {
         PurposeGroup purposeGroup = new PurposeGroup(
-                request.userId(),
-                request.purposeName(),
-                request.status()
+                userId,
+                request.purposeName().trim(),
+                request.status(),
+                request.categoryId()
         );
-
-        PurposeGroup savedPurposeGroup =
-                purposeGroupRepository.save(purposeGroup);
-
-        return PurposeGroupResponse.from(savedPurposeGroup);
+        return PurposeGroupResponse.from(purposeGroupRepository.save(purposeGroup));
     }
 
     // 목적 그룹 목록 조회
     public List<PurposeGroupResponse> findAll(Long userId) {
-
         return purposeGroupRepository.findAllByUserId(userId)
                 .stream()
                 .map(PurposeGroupResponse::from)
@@ -48,63 +45,39 @@ public class PurposeGroupService {
 
     // 목적 그룹 상세 조회
     public PurposeGroupResponse findById(Long userId, Long purposeGroupId) {
-
-        PurposeGroup purposeGroup = purposeGroupRepository
-                .findByIdAndUserId(purposeGroupId, userId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 목적 그룹입니다.")
-                );
+        PurposeGroup purposeGroup = purposeGroupRepository.findByIdAndUserId(purposeGroupId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND));
 
         return PurposeGroupResponse.from(purposeGroup);
     }
 
     // 목적 그룹 이름 수정
     @Transactional
-    public PurposeGroupResponse update(
-            Long userId,
-            Long purposeGroupId,
-            PurposeGroupUpdateRequest request
-    ) {
+    public PurposeGroupResponse update(Long userId, Long purposeGroupId, PurposeGroupUpdateRequest request) {
+        PurposeGroup purposeGroup = purposeGroupRepository.findByIdAndUserId(purposeGroupId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND));
 
-        PurposeGroup purposeGroup = purposeGroupRepository
-                .findByIdAndUserId(purposeGroupId, userId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 목적 그룹입니다.")
-                );
-
-        purposeGroup.update(request.purposeName());
-
+        purposeGroup.update(request.purposeName().trim());
+        purposeGroupRepository.flush();
         return PurposeGroupResponse.from(purposeGroup);
     }
 
     // 진행 상태 변경
     @Transactional
-    public PurposeGroupResponse updateStatus(
-            Long userId,
-            Long purposeGroupId,
-            PurposeGroupStatusRequest request
-    ) {
-
-        PurposeGroup purposeGroup = purposeGroupRepository
-                .findByIdAndUserId(purposeGroupId, userId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 목적 그룹입니다.")
-                );
+    public PurposeGroupResponse updateStatus(Long userId, Long purposeGroupId, PurposeGroupStatusRequest request) {
+        PurposeGroup purposeGroup = purposeGroupRepository.findByIdAndUserId(purposeGroupId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND));
 
         purposeGroup.updateStatus(request.status());
-
+        purposeGroupRepository.flush();
         return PurposeGroupResponse.from(purposeGroup);
     }
 
     // 목적 그룹 삭제
     @Transactional
     public void delete(Long userId, Long purposeGroupId) {
-
-        PurposeGroup purposeGroup = purposeGroupRepository
-                .findByIdAndUserId(purposeGroupId, userId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 목적 그룹입니다.")
-                );
+        PurposeGroup purposeGroup = purposeGroupRepository.findByIdAndUserId(purposeGroupId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND));
 
         purposeGroupRepository.delete(purposeGroup);
     }

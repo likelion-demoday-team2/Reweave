@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 public record PurposeGroupResponse(
         Long purposeGroupId,
         Long userId,
+        Long categoryId,
         String purposeName,
         String status,
         LocalDateTime createdDate,
@@ -17,6 +18,7 @@ public record PurposeGroupResponse(
         return new PurposeGroupResponse(
                 purposeGroup.getId(),
                 purposeGroup.getUserId(),
+                purposeGroup.getCategoryId(),
                 purposeGroup.getPurposeName(),
                 purposeGroup.getStatus(),
                 purposeGroup.getCreatedDate(),
