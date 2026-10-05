@@ -1,38 +1,54 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import Login from './pages/Login/Login.jsx';
+import Signup from './pages/Signup/Signup.jsx';
+import Home from './pages/Home/Home.jsx';
 import BottomNav from './components/BottomNav/BottomNav.jsx';
+import SaveLinkModal from './components/SaveLinkModal/SaveLinkModal.jsx';
 import './App.scss';
 
-// 스타일 검증용 임시 카드 컴포넌트
-const TestHome = () => (
-  <div className="test-card">
-    <h1 className="title">홈 화면</h1>
-    <p className="desc">Primary 라임컬러와 카드 배경색이 잘 나오나요?</p>
-    <button className="btn-primary">테스트 버튼</button>
-  </div>
-);
-
-
-// 아직 페이지가 없으니 임시 페이지로 연결 확인용
-const Home = () => <div className="page">홈</div>;
+// 임시 페이지들
 const Bookmark = () => <div className="page">보관함</div>;
 const Project = () => <div className="page">프로젝트</div>;
 const Mypage = () => <div className="page">마이</div>;
-const Add = () => <div className="page">추가 (준비 중)</div>;
 
 function App() {
+  const location = useLocation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const hideBottomNavPaths = ['/login', '/signup'];
+  const showBottomNav = !hideBottomNavPaths.includes(location.pathname);
+
+  const handleSaveLink = (linkData) => {
+    console.log('저장된 링크 데이터:', linkData);
+    // TODO: 저장 API 연동 또는 상태 업데이트
+  };
+
   return (
     <div className="App">
       <main className="app-content">
         <Routes>
-          <Route path="/" element={<Navigate to="/home" replace />} />
-          <Route path="/home" element={<TestHome />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/home" element={<Home />} />
           <Route path="/bookmark" element={<Bookmark />} />
           <Route path="/project" element={<Project />} />
           <Route path="/mypage" element={<Mypage />} />
-          <Route path="/add" element={<Add />} />
         </Routes>
       </main>
-      <BottomNav />
+
+      {/* 하단 바의 + 버튼 클릭 시 모달 열기 */}
+      {showBottomNav && (
+        <BottomNav onAddClick={() => setIsModalOpen(true)} />
+      )}
+
+      {/* 전역 링크 저장 모달 */}
+      <SaveLinkModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveLink}
+      />
     </div>
   );
 }
