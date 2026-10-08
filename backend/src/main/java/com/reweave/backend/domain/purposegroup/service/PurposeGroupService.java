@@ -3,7 +3,12 @@ package com.reweave.backend.domain.purposegroup.service;
 import com.reweave.backend.domain.bookmark.entity.Bookmark;
 import com.reweave.backend.domain.bookmark.repository.BookmarkRepository;
 import com.reweave.backend.domain.category.repository.CategoryRepository;
-import com.reweave.backend.domain.purposegroup.dto.*;
+import com.reweave.backend.domain.purposegroup.dto.PurposeGroupBookmarkAddRequest;
+import com.reweave.backend.domain.purposegroup.dto.PurposeGroupBookmarkResponse;
+import com.reweave.backend.domain.purposegroup.dto.PurposeGroupCreateRequest;
+import com.reweave.backend.domain.purposegroup.dto.PurposeGroupResponse;
+import com.reweave.backend.domain.purposegroup.dto.PurposeGroupStatusRequest;
+import com.reweave.backend.domain.purposegroup.dto.PurposeGroupUpdateRequest;
 import com.reweave.backend.domain.purposegroup.entity.PurposeGroup;
 import com.reweave.backend.domain.purposegroup.entity.PurposeGroupBookmark;
 import com.reweave.backend.domain.purposegroup.repository.PurposeGroupBookmarkRepository;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional(readOnly = true)
@@ -100,9 +106,12 @@ public class PurposeGroupService {
         PurposeGroup purposeGroup = purposeGroupRepository.findByIdAndUserId(purposeGroupId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND));
 
+        purposeGroupBookmarkRepository.deleteAllByPurposeGroupId(purposeGroupId);
+
         purposeGroupRepository.delete(purposeGroup);
     }
 
+    // 카테고리 소유권 검증 메서드
     private void validateCategoryOwnership(Long categoryId, Long userId) {
         categoryRepository.findByIdAndUserId(categoryId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -114,20 +123,28 @@ public class PurposeGroupService {
         PurposeGroup purposeGroup = purposeGroupRepository.findByIdAndUserId(purposeGroupId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND));
 
+        List<Long> distinctBookmarkIds = request.bookmarkIds().stream()
+                .distinct()
+                .toList();
+
         List<Bookmark> bookmarks = bookmarkRepository.findAllByIdInAndUserIdAndDeletedDateIsNull(
-                request.bookmarkIds(), userId
+                distinctBookmarkIds, userId
         );
 
-        if (bookmarks.size() != request.bookmarkIds().size()) {
+        if (bookmarks.size() != distinctBookmarkIds.size()) {
             throw new CustomException(ErrorCode.BOOKMARK_NOT_FOUND);
         }
 
+        Set<Long> existingBookmarkIds = purposeGroupBookmarkRepository.findBookmarkIdsByPurposeGroupId(purposeGroupId);
+
         List<PurposeGroupBookmark> newMappings = bookmarks.stream()
-                .filter(b -> !purposeGroupBookmarkRepository.existsByPurposeGroupIdAndBookmarkId(purposeGroupId, b.getId()))
+                .filter(b -> !existingBookmarkIds.contains(b.getId()))
                 .map(b -> new PurposeGroupBookmark(purposeGroup, b))
                 .toList();
 
-        purposeGroupBookmarkRepository.saveAll(newMappings);
+        if (!newMappings.isEmpty()) {
+            purposeGroupBookmarkRepository.saveAll(newMappings);
+        }
     }
 
     // 목적 그룹 내 북마크 목록 페이징 조회
