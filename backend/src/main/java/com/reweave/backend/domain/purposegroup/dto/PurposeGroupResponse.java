@@ -1,6 +1,7 @@
 package com.reweave.backend.domain.purposegroup.dto;
 
 import com.reweave.backend.domain.purposegroup.entity.PurposeGroup;
+import com.reweave.backend.domain.purposegroup.entity.PurposeGroupStatus;
 
 import java.time.LocalDateTime;
 
@@ -9,7 +10,7 @@ public record PurposeGroupResponse(
         Long userId,
         Long categoryId,
         String purposeName,
-        String status,
+        PurposeGroupStatus status,
         LocalDateTime createdDate,
         LocalDateTime modifiedDate
 ) {

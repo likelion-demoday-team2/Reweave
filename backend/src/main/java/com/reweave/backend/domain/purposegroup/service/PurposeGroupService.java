@@ -1,5 +1,6 @@
 package com.reweave.backend.domain.purposegroup.service;
 
+import com.reweave.backend.domain.category.repository.CategoryRepository;
 import com.reweave.backend.domain.purposegroup.dto.PurposeGroupCreateRequest;
 import com.reweave.backend.domain.purposegroup.dto.PurposeGroupResponse;
 import com.reweave.backend.domain.purposegroup.dto.PurposeGroupStatusRequest;
@@ -18,14 +19,21 @@ import java.util.List;
 public class PurposeGroupService {
 
     private final PurposeGroupRepository purposeGroupRepository;
+    private final CategoryRepository categoryRepository;
 
-    public PurposeGroupService(PurposeGroupRepository purposeGroupRepository) {
+    public PurposeGroupService(PurposeGroupRepository purposeGroupRepository, CategoryRepository categoryRepository) {
         this.purposeGroupRepository = purposeGroupRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     // 목적 그룹 생성
     @Transactional
     public PurposeGroupResponse create(Long userId, PurposeGroupCreateRequest request) {
+        // categoryId가 존재할 때만 카테고리 유효성 검증
+        if (request.categoryId() != null) {
+            validateCategoryExists(request.categoryId());
+        }
+
         PurposeGroup purposeGroup = new PurposeGroup(
                 userId,
                 request.purposeName().trim(),
@@ -54,10 +62,14 @@ public class PurposeGroupService {
     // 목적 그룹 이름 수정
     @Transactional
     public PurposeGroupResponse update(Long userId, Long purposeGroupId, PurposeGroupUpdateRequest request) {
+        if (request.categoryId() != null) {
+            validateCategoryExists(request.categoryId());
+        }
+
         PurposeGroup purposeGroup = purposeGroupRepository.findByIdAndUserId(purposeGroupId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND));
 
-        purposeGroup.update(request.purposeName().trim());
+        purposeGroup.update(request.purposeName().trim(), request.categoryId());
         purposeGroupRepository.flush();
         return PurposeGroupResponse.from(purposeGroup);
     }
@@ -73,12 +85,16 @@ public class PurposeGroupService {
         return PurposeGroupResponse.from(purposeGroup);
     }
 
-    // 목적 그룹 삭제
     @Transactional
     public void delete(Long userId, Long purposeGroupId) {
         PurposeGroup purposeGroup = purposeGroupRepository.findByIdAndUserId(purposeGroupId, userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND));
 
         purposeGroupRepository.delete(purposeGroup);
+    }
+
+    private void validateCategoryOwnership(Long categoryId, Long userId) {
+        categoryRepository.findByIdAndUserId(categoryId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 }

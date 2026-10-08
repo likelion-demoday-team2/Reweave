@@ -21,17 +21,33 @@ public class PurposeGroup extends BaseTimeEntity {
     @Column(name = "purpose_name", nullable = false, length = 255)
     private String purposeName;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    private PurposeGroupStatus status;
 
     protected PurposeGroup() {
     }
 
-    public PurposeGroup(Long userId, String purposeName, String status, Long categoryId) {
+    public PurposeGroup(Long userId, String purposeName, PurposeGroupStatus status, Long categoryId) {
         this.userId = userId;
         this.purposeName = purposeName;
         this.status = status;
         this.categoryId = categoryId;
+    }
+
+    public void update(String purposeName, Long categoryId) {
+        if (purposeName != null && !purposeName.isBlank()) {
+            this.purposeName = purposeName;
+        }
+        if (categoryId != null) {
+            this.categoryId = categoryId;
+        }
+    }
+
+    public void updateStatus(PurposeGroupStatus status) {
+        if (status != null) {
+            this.status = status;
+        }
     }
 
     public Long getId() {
@@ -50,15 +66,7 @@ public class PurposeGroup extends BaseTimeEntity {
         return purposeName;
     }
 
-    public String getStatus() {
+    public PurposeGroupStatus getStatus() {
         return status;
-    }
-
-    public void update(String purposeName) {
-        this.purposeName = purposeName;
-    }
-
-    public void updateStatus(String status) {
-        this.status = status;
     }
 }
