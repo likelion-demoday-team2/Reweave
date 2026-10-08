@@ -39,7 +39,9 @@ public class PurposeGroup extends BaseTimeEntity {
         if (purposeName != null && !purposeName.isBlank()) {
             this.purposeName = purposeName;
         }
-        this.categoryId = categoryId;
+        if (categoryId != null) {
+            this.categoryId = categoryId;
+        }
     }
 
     public void updateStatus(PurposeGroupStatus status) {

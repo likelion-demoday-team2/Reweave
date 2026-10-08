@@ -93,9 +93,8 @@ public class PurposeGroupService {
         purposeGroupRepository.delete(purposeGroup);
     }
 
-    private void validateCategoryExists(Long categoryId) {
-        if (!categoryRepository.existsById(categoryId)) {
-            throw new CustomException(ErrorCode.CATEGORY_NOT_FOUND);
-        }
+    private void validateCategoryOwnership(Long categoryId, Long userId) {
+        categoryRepository.findByIdAndUserId(categoryId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 }
