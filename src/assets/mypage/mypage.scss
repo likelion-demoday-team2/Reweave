@@ -1,0 +1,53 @@
+@import '../../styles/main.scss';
+
+.mypage-wrap {
+    width: 100%;
+    height: 844px;
+
+    .mypage-statusBar {
+        width: 100%;
+        height: 47px;
+        box-sizing: border-box;
+        padding-top: 60px;
+        padding-left: 4px;
+    }
+
+    .mypage-title {
+        width: 100%;
+        height: 60px;
+
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+    }
+
+    .mypage-nickname {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .info-card {
+        margin-top: 21px;
+        width: 342px;
+        height: 112px;
+        display: flex;
+        flex-direction: column;
+        background-color: $black-2;
+        border: solid 1px rgba($gray-2, 0.5);
+        border-radius: 10px;
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 50px;
+            background: none;
+            border: none;
+            color: #fff;
+            font: inherit;
+            cursor: pointer;
+        }
+    }
+}

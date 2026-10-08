@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import BottomNav from './components/BottomNav/BottomNav.jsx';
+import Mypage from './pages/myPage.jsx';
 import './App.scss';
 
 // 스타일 검증용 임시 카드 컴포넌트
@@ -16,7 +17,6 @@ const TestHome = () => (
 const Home = () => <div className="page">홈</div>;
 const Bookmark = () => <div className="page">보관함</div>;
 const Project = () => <div className="page">프로젝트</div>;
-const Mypage = () => <div className="page">마이</div>;
 const Add = () => <div className="page">추가 (준비 중)</div>;
 
 function App() {
