@@ -11,4 +11,6 @@ public interface PurposeGroupRepository extends JpaRepository<PurposeGroup, Long
     List<PurposeGroup> findAllByUserId(Long userId);
 
     Optional<PurposeGroup> findByIdAndUserId(Long id, Long userId);
+
+    boolean existsByIdAndUserId(Long id, Long userId);
 }
