@@ -1,12 +1,14 @@
 package com.reweave.backend.domain.purposegroup.controller;
 
-import com.reweave.backend.domain.purposegroup.dto.PurposeGroupCreateRequest;
-import com.reweave.backend.domain.purposegroup.dto.PurposeGroupResponse;
-import com.reweave.backend.domain.purposegroup.dto.PurposeGroupStatusRequest;
-import com.reweave.backend.domain.purposegroup.dto.PurposeGroupUpdateRequest;
+import com.reweave.backend.domain.bookmark.dto.BookmarkPageResponse;
+import com.reweave.backend.domain.purposegroup.dto.*;
 import com.reweave.backend.domain.purposegroup.service.PurposeGroupService;
 import com.reweave.backend.global.common.ApiResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -76,5 +78,29 @@ public class PurposeGroupController {
     ) {
         purposeGroupService.delete(userId, purposeGroupId);
         return ResponseEntity.ok(ApiResponse.ok());
+    }
+
+    // 목적 그룹에 북마크 추가
+    @PostMapping("/{purposeGroupId}/bookmarks")
+    public ResponseEntity<ApiResponse<Void>> addBookmarks(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long purposeGroupId,
+            @Valid @RequestBody PurposeGroupBookmarkAddRequest request
+    ) {
+        purposeGroupService.addBookmarks(userId, purposeGroupId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok());
+    }
+
+    // 목적 그룹 내 북마크 목록 페이징 조회
+    @GetMapping("/{purposeGroupId}/bookmarks")
+    public ResponseEntity<ApiResponse<BookmarkPageResponse<PurposeGroupBookmarkResponse>>> getBookmarks(
+            @AuthenticationPrincipal Long userId,
+            @PathVariable Long purposeGroupId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
+        Page<PurposeGroupBookmarkResponse> result = purposeGroupService.findBookmarks(userId, purposeGroupId, pageable);
+        return ResponseEntity.ok(ApiResponse.ok(BookmarkPageResponse.of(result)));
     }
 }
