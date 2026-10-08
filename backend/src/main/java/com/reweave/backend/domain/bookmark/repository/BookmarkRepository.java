@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -66,4 +67,67 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
                           @Param("categoryId") Long categoryId,
                           @Param("keyword") String keyword,
                           Pageable pageable);
+
+    // ===== 카테고리 API용 =====
+
+    // 카테고리별 북마크 개수 (삭제된 것 제외)
+    interface CategoryCount {
+        Long getCategoryId();
+        Long getCount();
+    }
+
+    @Query("""
+            select b.category.id as categoryId, count(b) as count
+            from Bookmark b
+            where b.user.id = :userId and b.deletedDate is null and b.category is not null
+            group by b.category.id
+            """)
+    List<CategoryCount> countActiveByCategory(@Param("userId") Long userId);
+
+    // 기본 카테고리 개수
+    long countByUserIdAndDeletedDateIsNull(Long userId);
+
+    long countByUserIdAndCategoryIsNullAndDeletedDateIsNull(Long userId);
+
+    long countByUserIdAndDeletedDateIsNotNull(Long userId);
+
+    // 썸네일 (최근 저장순, 썸네일 없는 링크 제외, 개수는 Pageable로 제한)
+    @Query("""
+            select b.thumbnailUrl from Bookmark b
+            where b.user.id = :userId and b.category.id = :categoryId
+              and b.deletedDate is null and b.thumbnailUrl is not null
+            order by b.createdDate desc, b.id desc
+            """)
+    List<String> findThumbnailsByCategory(@Param("userId") Long userId,
+                                          @Param("categoryId") Long categoryId,
+                                          Pageable pageable);
+
+    @Query("""
+            select b.thumbnailUrl from Bookmark b
+            where b.user.id = :userId
+              and b.deletedDate is null and b.thumbnailUrl is not null
+            order by b.createdDate desc, b.id desc
+            """)
+    List<String> findThumbnailsAll(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("""
+            select b.thumbnailUrl from Bookmark b
+            where b.user.id = :userId and b.category is null
+              and b.deletedDate is null and b.thumbnailUrl is not null
+            order by b.createdDate desc, b.id desc
+            """)
+    List<String> findThumbnailsUncategorized(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("""
+            select b.thumbnailUrl from Bookmark b
+            where b.user.id = :userId
+              and b.deletedDate is not null and b.thumbnailUrl is not null
+            order by b.deletedDate desc, b.id desc
+            """)
+    List<String> findThumbnailsInTrash(@Param("userId") Long userId, Pageable pageable);
+
+    // 카테고리 삭제 시 안의 북마크를 미분류로 (휴지통 포함)
+    @Modifying(flushAutomatically = true)
+    @Query("update Bookmark b set b.category = null where b.user.id = :userId and b.category.id = :categoryId")
+    int clearCategory(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
 }

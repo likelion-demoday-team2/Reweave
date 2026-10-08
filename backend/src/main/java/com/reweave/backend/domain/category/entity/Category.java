@@ -5,7 +5,13 @@ import com.reweave.backend.global.common.BaseTimeEntity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "categories")
+@Table(
+        name = "categories",
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_categories_user_name",
+                columnNames = {"user_id", "category_name"}
+        )
+)
 public class Category extends BaseTimeEntity {
 
     @Id
@@ -35,6 +41,12 @@ public class Category extends BaseTimeEntity {
         this.description = description;
         this.sortOrder = sortOrder;
     }
+
+    public void updateName(String categoryName) { this.categoryName = categoryName; }
+
+    public void updateDescription(String description) { this.description = description; }
+
+    public void changeSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
 
     public Long getId() { return id; }
     public User getUser() { return user; }
