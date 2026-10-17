@@ -167,7 +167,7 @@ public class PurposeGroupService {
         purposeGroupBookmarkRepository.deleteAllByPurposeGroupIdAndBookmarkIdIn(purposeGroupId, distinctBookmarkIds);
     }
 
-    //목적 그룹 간 북마크 이동
+    // 목적 그룹 간 북마크 이동
     @Transactional
     public void moveBookmarks(Long userId, Long sourcePurposeGroupId, PurposeGroupBookmarkMoveRequest request) {
         Long targetPurposeGroupId = request.targetPurposeGroupId();
@@ -181,6 +181,16 @@ public class PurposeGroupService {
         List<Long> distinctBookmarkIds = request.bookmarkIds().stream()
                 .distinct()
                 .toList();
+
+        // 출발지 그룹에 요청한 북마크가 모두 존재하는지 검증
+        long validSourceCount = purposeGroupBookmarkRepository.countByPurposeGroupIdAndBookmarkIdIn(
+                sourcePurposeGroupId,
+                distinctBookmarkIds
+        );
+
+        if (validSourceCount != distinctBookmarkIds.size()) {
+            throw new CustomException(ErrorCode.BOOKMARK_NOT_FOUND);
+        }
 
         // 출발지 그룹에서 매핑 삭제
         purposeGroupBookmarkRepository.deleteAllByPurposeGroupIdAndBookmarkIdIn(sourcePurposeGroupId, distinctBookmarkIds);

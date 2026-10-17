@@ -26,4 +26,7 @@ public interface PurposeGroupBookmarkRepository extends JpaRepository<PurposeGro
 
     // 특정 목적 그룹 내 특정 북마크들 삭제
     void deleteAllByPurposeGroupIdAndBookmarkIdIn(Long purposeGroupId, List<Long> bookmarkIds);
+
+    // 출발지 그룹 내 개수를 조회
+    long countByPurposeGroupIdAndBookmarkIdIn(Long purposeGroupId, List<Long> bookmarkIds);
 }
