@@ -3,12 +3,7 @@ package com.reweave.backend.domain.purposegroup.service;
 import com.reweave.backend.domain.bookmark.entity.Bookmark;
 import com.reweave.backend.domain.bookmark.repository.BookmarkRepository;
 import com.reweave.backend.domain.category.repository.CategoryRepository;
-import com.reweave.backend.domain.purposegroup.dto.PurposeGroupBookmarkAddRequest;
-import com.reweave.backend.domain.purposegroup.dto.PurposeGroupBookmarkResponse;
-import com.reweave.backend.domain.purposegroup.dto.PurposeGroupCreateRequest;
-import com.reweave.backend.domain.purposegroup.dto.PurposeGroupResponse;
-import com.reweave.backend.domain.purposegroup.dto.PurposeGroupStatusRequest;
-import com.reweave.backend.domain.purposegroup.dto.PurposeGroupUpdateRequest;
+import com.reweave.backend.domain.purposegroup.dto.*;
 import com.reweave.backend.domain.purposegroup.entity.PurposeGroup;
 import com.reweave.backend.domain.purposegroup.entity.PurposeGroupBookmark;
 import com.reweave.backend.domain.purposegroup.repository.PurposeGroupBookmarkRepository;
@@ -156,5 +151,65 @@ public class PurposeGroupService {
         return purposeGroupBookmarkRepository
                 .findByPurposeGroupIdAndBookmarkDeletedDateIsNull(purposeGroupId, pageable)
                 .map(pgb -> PurposeGroupBookmarkResponse.from(pgb.getBookmark()));
+    }
+
+    // 목적 그룹 내 북마크 삭제 (매핑 해제)
+    @Transactional
+    public void removeBookmarks(Long userId, Long purposeGroupId, PurposeGroupBookmarkDeleteRequest request) {
+        if (!purposeGroupRepository.existsByIdAndUserId(purposeGroupId, userId)) {
+            throw new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND);
+        }
+
+        List<Long> distinctBookmarkIds = request.bookmarkIds().stream()
+                .distinct()
+                .toList();
+
+        purposeGroupBookmarkRepository.deleteAllByPurposeGroupIdAndBookmarkIdIn(purposeGroupId, distinctBookmarkIds);
+    }
+
+    // 목적 그룹 간 북마크 이동
+    @Transactional
+    public void moveBookmarks(Long userId, Long sourcePurposeGroupId, PurposeGroupBookmarkMoveRequest request) {
+        Long targetPurposeGroupId = request.targetPurposeGroupId();
+
+        // 출발지 및 목적지 그룹 소유권 검증
+        if (!purposeGroupRepository.existsByIdAndUserId(sourcePurposeGroupId, userId) ||
+                !purposeGroupRepository.existsByIdAndUserId(targetPurposeGroupId, userId)) {
+            throw new CustomException(ErrorCode.PURPOSE_GROUP_NOT_FOUND);
+        }
+
+        List<Long> distinctBookmarkIds = request.bookmarkIds().stream()
+                .distinct()
+                .toList();
+
+        // 출발지 그룹에 요청한 북마크가 모두 존재하는지 검증
+        long validSourceCount = purposeGroupBookmarkRepository.countByPurposeGroupIdAndBookmarkIdIn(
+                sourcePurposeGroupId,
+                distinctBookmarkIds
+        );
+
+        if (validSourceCount != distinctBookmarkIds.size()) {
+            throw new CustomException(ErrorCode.BOOKMARK_NOT_FOUND);
+        }
+
+        // 출발지 그룹에서 매핑 삭제
+        purposeGroupBookmarkRepository.deleteAllByPurposeGroupIdAndBookmarkIdIn(sourcePurposeGroupId, distinctBookmarkIds);
+
+        // 목적지 그룹에 존재하지 않는 신규 북마크만 목적지로 추가 (N+1 방지)
+        List<Bookmark> bookmarks = bookmarkRepository.findAllByIdInAndUserIdAndDeletedDateIsNull(
+                distinctBookmarkIds, userId
+        );
+
+        PurposeGroup targetGroup = purposeGroupRepository.getReferenceById(targetPurposeGroupId);
+        Set<Long> existingInTarget = purposeGroupBookmarkRepository.findBookmarkIdsByPurposeGroupId(targetPurposeGroupId);
+
+        List<PurposeGroupBookmark> newMappings = bookmarks.stream()
+                .filter(b -> !existingInTarget.contains(b.getId()))
+                .map(b -> new PurposeGroupBookmark(targetGroup, b))
+                .toList();
+
+        if (!newMappings.isEmpty()) {
+            purposeGroupBookmarkRepository.saveAll(newMappings);
+        }
     }
 }

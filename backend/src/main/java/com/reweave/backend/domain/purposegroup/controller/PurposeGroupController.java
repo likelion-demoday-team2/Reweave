@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.util.List;
 
 @RestController
@@ -80,11 +81,10 @@ public class PurposeGroupController {
         return ResponseEntity.ok(ApiResponse.ok());
     }
 
-    // 목적 그룹에 북마크 추가
     @PostMapping("/{purposeGroupId}/bookmarks")
     public ResponseEntity<ApiResponse<Void>> addBookmarks(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long purposeGroupId,
+            @PathVariable("purposeGroupId") Long purposeGroupId,
             @Valid @RequestBody PurposeGroupBookmarkAddRequest request
     ) {
         purposeGroupService.addBookmarks(userId, purposeGroupId, request);
@@ -95,12 +95,34 @@ public class PurposeGroupController {
     @GetMapping("/{purposeGroupId}/bookmarks")
     public ResponseEntity<ApiResponse<BookmarkPageResponse<PurposeGroupBookmarkResponse>>> getBookmarks(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long purposeGroupId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @PathVariable("purposeGroupId") Long purposeGroupId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
         Page<PurposeGroupBookmarkResponse> result = purposeGroupService.findBookmarks(userId, purposeGroupId, pageable);
         return ResponseEntity.ok(ApiResponse.ok(BookmarkPageResponse.of(result)));
+    }
+
+    // 목적 그룹 내 북마크 삭제
+    @DeleteMapping("/{purposeGroupId}/bookmarks")
+    public ResponseEntity<ApiResponse<Void>> removeBookmarks(
+            @AuthenticationPrincipal Long userId,   // expression = "principal" 제거
+            @PathVariable("purposeGroupId") Long purposeGroupId,
+            @Valid @RequestBody PurposeGroupBookmarkDeleteRequest request
+    ) {
+        purposeGroupService.removeBookmarks(userId, purposeGroupId, request);
+        return ResponseEntity.ok(ApiResponse.ok());
+    }
+
+    // 목적 그룹 간 북마크 이동
+    @PutMapping("/{purposeGroupId}/bookmarks/move")
+    public ResponseEntity<ApiResponse<Void>> moveBookmarks(
+            @AuthenticationPrincipal Long userId,   // expression = "principal" 제거
+            @PathVariable("purposeGroupId") Long purposeGroupId,
+            @Valid @RequestBody PurposeGroupBookmarkMoveRequest request
+    ) {
+        purposeGroupService.moveBookmarks(userId, purposeGroupId, request);
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 }
