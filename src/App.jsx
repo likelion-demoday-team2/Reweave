@@ -5,6 +5,7 @@ import Signup from './pages/Signup/Signup.jsx';
 import Home from './pages/Home/Home.jsx';
 import BottomNav from './components/BottomNav/BottomNav.jsx';
 import Mypage from './pages/myPage.jsx';
+import SaveLinkModal from './components/SaveLinkModal/SaveLinkModal.jsx';
 import './App.scss';
 
 // 임시 페이지들
