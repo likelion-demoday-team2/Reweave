@@ -1,20 +1,2 @@
 @import './styles/mixins';
 
-.App {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background-color: $background-dark;
-}
-
-.app-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.page {
-  @include font-style($font-20, $weight-bold);
-  color: $text-primary;
-}
