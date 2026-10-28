@@ -4,13 +4,12 @@ import Login from './pages/Login/Login.jsx';
 import Signup from './pages/Signup/Signup.jsx';
 import Home from './pages/Home/Home.jsx';
 import BottomNav from './components/BottomNav/BottomNav.jsx';
-import SaveLinkModal from './components/SaveLinkModal/SaveLinkModal.jsx';
+import Mypage from './pages/myPage.jsx';
 import './App.scss';
 
 // 임시 페이지들
 const Bookmark = () => <div className="page">보관함</div>;
 const Project = () => <div className="page">프로젝트</div>;
-const Mypage = () => <div className="page">마이</div>;
 
 function App() {
   const location = useLocation();
