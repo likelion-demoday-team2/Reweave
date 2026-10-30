@@ -3,14 +3,14 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Login from './pages/Login/Login.jsx';
 import Signup from './pages/Signup/Signup.jsx';
 import Home from './pages/Home/Home.jsx';
-import BottomNav from './components/BottomNav/BottomNav.jsx';
+import Project from './pages/Project/Project.jsx'; // 새로 만든 Project 페이지 연결
 import Mypage from './pages/myPage.jsx';
+import BottomNav from './components/BottomNav/BottomNav.jsx';
 import SaveLinkModal from './components/SaveLinkModal/SaveLinkModal.jsx';
 import './App.scss';
 
-// 임시 페이지들
+// 임시 페이지 (보관함)
 const Bookmark = () => <div className="page">보관함</div>;
-const Project = () => <div className="page">프로젝트</div>;
 
 function App() {
   const location = useLocation();

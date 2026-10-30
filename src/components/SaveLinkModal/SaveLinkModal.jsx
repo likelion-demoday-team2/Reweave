@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import './SaveLinkModal.scss';
 import plusIcon from '../../assets/plus.svg';
+import closeIcon from '../../assets/home/x.svg';
 
 const SaveLinkModal = ({ isOpen, onClose, onSave }) => {
   const [url, setUrl] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('미분류');
   const [memo, setMemo] = useState('');
 
-  const categories = ['미분류', '취업', '디자인', '여행', '쇼핑'];
+  const categories = ['미분류', '취업', '디자인', '여행', '쇼핑', '맛집'];
 
   if (!isOpen) return null;
 
@@ -30,10 +31,13 @@ const SaveLinkModal = ({ isOpen, onClose, onSave }) => {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="modal-close-btn" onClick={onClose}>
+          <img src={closeIcon} alt="닫기" />
+        </button>
+
         <h2 className="modal-title">링크 저장</h2>
 
         <form onSubmit={handleSubmit}>
-    
           <div className="form-group">
             <input
               type="text"
