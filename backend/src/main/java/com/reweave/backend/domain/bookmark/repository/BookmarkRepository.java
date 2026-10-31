@@ -130,4 +130,7 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     @Modifying(flushAutomatically = true)
     @Query("update Bookmark b set b.category = null where b.user.id = :userId and b.category.id = :categoryId")
     int clearCategory(@Param("userId") Long userId, @Param("categoryId") Long categoryId);
+
+    // [AI 추천용] 선택한 카테고리 목록에 속한 삭제 안 된 북마크 전체 조회
+    List<Bookmark> findByUserIdAndCategoryIdInAndDeletedDateIsNull(Long userId, Collection<Long> categoryIds);
 }
