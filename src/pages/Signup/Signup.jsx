@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Signup.scss';
 
 import backIcon from '../../assets/back-arrow.svg'; 
-import xCircleIcon from '../../assets/x-circle.svg';
+import xCircleIcon from '../../assets/x.svg';
 
 const Signup = () => {
   const navigate = useNavigate();
