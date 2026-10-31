@@ -95,18 +95,18 @@ public class AiService {
         try {
             response = webClient.post()
                     .uri(apiUrl)
-                    .header("x-goog-api-key", apiKey) // URL 대신 헤더로 API Key 전달하여 로그 유출 방지
+                    .header("x-goog-api-key", apiKey)
                     .header("Content-Type", "application/json")
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(Map.class)
-                    .timeout(Duration.ofSeconds(30)) // 30초 타임아웃 지정
+                    .timeout(Duration.ofSeconds(30))
                     .block();
 
         } catch (WebClientResponseException e) {
             log.error("Gemini API 호출 실패 - Status: {}, Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
             if (e.getStatusCode().is5xxServerError()) {
-                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "AI 서비스가 일시적으로 이용 불가합니다. 잠시 후 다시 시도해 주세요.");
+                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "AI 서비스가 일시적으로 이용 불가합니다.");
             }
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 추천 처리 중 외부 서비스 오류가 발생했습니다.");
         } catch (Exception e) {
@@ -114,10 +114,10 @@ public class AiService {
             throw new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, "AI 추천 응답 시간이 초과되었습니다.");
         }
 
-        // 5. 응답 분석 및 ID 2차 검증
-        String rawText = parseGeminiResponse(response);
-        List<Long> matchedIds = extractAndValidateBookmarkIds(rawText, validCandidateIds);
-        String cleanedReason = extractReasonText(rawText);
+        // 5. 응답 파싱 및 검증
+        String rawResult = parseGeminiResponse(response);
+        List<Long> matchedIds = extractAndValidateBookmarkIds(rawResult, validCandidateIds);
+        String cleanedReason = extractReasonText(rawResult);
 
         return new AiRecommendResponse(matchedIds, cleanedReason);
     }
