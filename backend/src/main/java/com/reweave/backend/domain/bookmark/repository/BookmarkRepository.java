@@ -145,4 +145,25 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     @Modifying(flushAutomatically = true)
     @Query("delete from PurposeGroupBookmark pgb where pgb.bookmark.id in :bookmarkIds")
     int deletePurposeGroupLinks(@Param("bookmarkIds") Collection<Long> bookmarkIds);
+
+    // 홈 리콜 카드용: 썸네일이 있는 링크만, 최신순 (개수는 Pageable로 제한)
+    @Query("""
+            select b from Bookmark b
+            where b.user.id = :userId and b.category.id = :categoryId
+              and b.deletedDate is null
+              and b.thumbnailUrl is not null and b.thumbnailUrl <> ''
+            order by b.id desc
+            """)
+    List<Bookmark> findRecallCandidatesByCategory(@Param("userId") Long userId,
+                                                  @Param("categoryId") Long categoryId,
+                                                  Pageable pageable);
+
+    @Query("""
+            select b from Bookmark b
+            where b.user.id = :userId
+              and b.deletedDate is null
+              and b.thumbnailUrl is not null and b.thumbnailUrl <> ''
+            order by b.id desc
+            """)
+    List<Bookmark> findRecallCandidates(@Param("userId") Long userId, Pageable pageable);
 }
