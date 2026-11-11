@@ -207,25 +207,38 @@ public class AiService {
         return cards;
     }
 
-    // 그룹에 저장된 북마크 중 랜덤 1개. 저장된 북마크가 없으면 기존처럼 카테고리의 최신 북마크 중 랜덤 1개
+    // 그룹에 저장된 북마크 중 '썸네일이 있는' 랜덤 1개. 없으면 카테고리의 최신 북마크 중 썸네일 있는 랜덤 1개
     private Bookmark pickTargetBookmark(Long userId, PurposeGroup group, List<Bookmark> savedBookmarks) {
-        if (savedBookmarks != null && !savedBookmarks.isEmpty()) {
-            return savedBookmarks.get(ThreadLocalRandom.current().nextInt(savedBookmarks.size()));
+        if (savedBookmarks != null) {
+            List<Bookmark> withThumbnail = savedBookmarks.stream()
+                    .filter(this::hasThumbnail)
+                    .toList();
+            if (!withThumbnail.isEmpty()) {
+                return withThumbnail.get(ThreadLocalRandom.current().nextInt(withThumbnail.size()));
+            }
         }
 
         List<Bookmark> fallback;
         if (group.getCategoryId() != null) {
             fallback = bookmarkRepository.findByUserIdAndCategoryIdAndDeletedDateIsNullOrderByIdDesc(
-                    userId, group.getCategoryId(), PageRequest.of(0, 5));
+                    userId, group.getCategoryId(), PageRequest.of(0, 20));
         } else {
             fallback = bookmarkRepository.findByUserIdAndDeletedDateIsNullOrderByIdDesc(
-                    userId, PageRequest.of(0, 5));
+                    userId, PageRequest.of(0, 20));
         }
 
-        if (fallback.isEmpty()) {
-            return null;
+        List<Bookmark> fallbackWithThumbnail = fallback.stream()
+                .filter(this::hasThumbnail)
+                .toList();
+        if (fallbackWithThumbnail.isEmpty()) {
+            return null;   // 썸네일 있는 링크가 하나도 없으면 이 프로젝트는 카드에서 제외
         }
-        return fallback.get(ThreadLocalRandom.current().nextInt(fallback.size()));
+        return fallbackWithThumbnail.get(ThreadLocalRandom.current().nextInt(fallbackWithThumbnail.size()));
+    }
+
+    private boolean hasThumbnail(Bookmark bookmark) {
+        String url = bookmark.getThumbnailUrl();
+        return url != null && !url.isBlank();
     }
 
     // ===================== 추천문구 생성 (목적그룹 생성 후 백그라운드에서 호출) =====================
